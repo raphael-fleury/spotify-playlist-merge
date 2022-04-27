@@ -1,0 +1,11 @@
+{
+  "name": "spotify-playlist-merge",
+  "version": "1.0.0",
+  "description": "Get a list of playlists and merge into one",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Raphael Fleury",
+  "license": "ISC"
+}
