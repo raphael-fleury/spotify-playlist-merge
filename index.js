@@ -2,14 +2,10 @@ import "dotenv/config";
 import fs from "fs";
 import config from "./config.js";
 import SpotifyWebApi from "spotify-web-api-node";
-
-const userFields = "id,display_name"
-const trackFields = "album,artists,duration_ms,id,is_local,name";
-const tracklistItemFields = `added_at,added_by,is_local,track(${trackFields})`
-const tracklistFields = `items(${tracklistItemFields}),next,offset,limit`
-const playlistFields = `id,name,owner(${userFields}),tracks(${tracklistFields})`
+import { createPlaylistService } from "./playlist.service.js";
 
 const spotifyApi = new SpotifyWebApi();
+const playlistService = createPlaylistService(spotifyApi);
 
 async function main() {
     if (!config.spotifyToken) {
@@ -26,16 +22,10 @@ function getPlaylistIds() {
         .split("\n").filter(v => v);
 }
 
-async function getPlaylist(id) {
-    const res = await spotifyApi.getPlaylist(id, { fields: playlistFields });
-    return res.body;
-}
-
 async function getPlaylists() {
     for (const id of getPlaylistIds()) {
         try {
-            const playlist = await getPlaylist(id);
-            await fillPlaylistTracks(playlist);
+            const playlist = await playlistService.getPlaylistWithAllTracks(id);
             console.log(`Playlist "${playlist.name}" loaded successfully.`);
         }
         catch (error) {
@@ -50,29 +40,6 @@ async function getPlaylists() {
             throw new Error(`${message} (Status code: ${status})`);
         }
     }
-}
-
-async function fillPlaylistTracks(playlist) {
-    let { items, next, offset, limit } = playlist.tracks;
-
-    if (next) {
-        const tracks = await getPlaylistTracks(playlist.id, offset + limit);
-        playlist.tracks.items = [ ...items, ...tracks ];
-    }
-}
-
-async function getPlaylistTracks(id, offset = 0) {
-    const { body: data } = await spotifyApi.getPlaylistTracks(id, { offset, fields: tracklistFields });
-
-    offset = data.offset;
-    let { items, next, limit } = data;
-
-    if (next) {
-        const tracks = await getPlaylistTracks(id, offset + limit);
-        items = [ ...items, ...tracks ]
-    }
-
-    return items;
 }
 
 main()
