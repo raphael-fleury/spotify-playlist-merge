@@ -1,18 +1,12 @@
 import "dotenv/config";
-import config from "./config.js";
-import SpotifyWebApi from "spotify-web-api-node";
-import { createPlaylistService } from "./playlist.service.js";
-import { readFileLines } from "./util/file-utils.js";
+import config from "./src/config/index.js";
+import spotifyService from "./src/services/spotify.service.js";
+import { createPlaylistService } from "./src/services/playlist.service.js";
+import { readFileLines } from "./src/util/file.utils.js";
 
-const spotifyApi = new SpotifyWebApi();
-const playlistService = createPlaylistService(spotifyApi);
+const playlistService = createPlaylistService(spotifyService);
 
 async function main() {
-    if (!config.spotifyToken) {
-        throw new Error("No OAuth token.");
-    }
-
-    spotifyApi.setAccessToken(config.spotifyToken);
     const playlists = await getPlaylists();
     const newPlaylist = await playlistService.createPlaylist(config.newPlaylistName);
     const tracks = concatPlaylistsTracks(playlists);
