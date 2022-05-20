@@ -48,6 +48,13 @@ function concatPlaylistsTracks(playlists) {
         tracks = tracks.concat(playlist.tracks.items.map(i => i.track));
     }
 
+    if (config.skipDuplicates) {
+        tracks = tracks.filter((track, index, self) => {
+            const firstIndex = self.findIndex(v => v.id === track.id);
+            return [-1, index].includes(firstIndex);
+        })
+    }
+
     return tracks;
 }
 
